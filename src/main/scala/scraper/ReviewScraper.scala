@@ -33,33 +33,33 @@ object ReviewScraper {
 
   def getAllreviews(id: String, limit: Int): List[Review] = {
 
-    def scoreOrMinud1(elements: Elements): String = {
-      try {
-        elements.get(1).text()
-      } catch {
-        case e: Exception => "-1"
-      }
-    }
+    def reviewToReviewModel(review: Element): List[Review] = {
 
-    def reviewToReviewMode(review: Element): List[Review] = {
-      val reviewM: Review = new Review(
+      def scoreOrMinus1(elements: Elements): String = {
+        try {
+          elements.get(1).text()
+        } catch {
+          case e: Exception => "-1"
+        }
+      }
+
+      List(new Review(
         review.select("div[class=title]").text(),
         review.select("div[class=text show-more__control]").text(),
         review.select("div[class=display-name-date]").select("a[href]").attr("href").split("/")(2),
         review.select("div[class=display-name-date]").select("span").get(0).select("a").text(),
         review.select("div[class=display-name-date]").select("span").get(1).text(),
-        scoreOrMinud1(review.select("div[class=ipl-ratings-bar]").select("span")),
+        scoreOrMinus1(review.select("div[class=ipl-ratings-bar]").select("span")),
         !review.select("span[class=spoiler-warning]").isEmpty,
         review.select("div[class=actions text-muted]").text.split("\n")(0).split(" ")(3).replace(",", ""),
         review.select("div[class=actions text-muted]").text.split("\n")(0).split(" ")(0).replace(",", ""),
-      )
-      List(reviewM)
+      ))
     }
 
     @tailrec
     def scrapeReviewContainer(elements: Elements, idx: Int, acc: List[Review], count: Int, limit: Int): List[Review] = {
       if (idx >= elements.size() || count >= limit) acc
-      else scrapeReviewContainer(elements, idx + 1, acc ::: reviewToReviewMode(elements.get(idx)), count + 1, limit)
+      else scrapeReviewContainer(elements, idx + 1, acc ::: reviewToReviewModel(elements.get(idx)), count + 1, limit)
     }
 
     def findWithKey(str: String, id: String, count: Int, limit: Int): List[Review] = {
